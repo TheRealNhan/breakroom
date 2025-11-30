@@ -40,3 +40,14 @@ canvas > [data-engine="three.js r181"] {
     transform: rotate(360deg);
   }
 }
+body {
+  background-color: #363636;
+}
+
+.stats {
+  z-index: 100;
+  /* Move it to the bottom-left corner */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+}
