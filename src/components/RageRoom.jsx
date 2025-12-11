@@ -1,43 +1,105 @@
-import { Model } from './Groups'
+import { Model } from './Room1_color'
 import { Canvas } from '@react-three/fiber'
 import React, { useRef } from 'react'
-import { OrbitControls } from '@react-three/drei'
+import { OrbitControls, Stats, CameraControls } from '@react-three/drei'
 import * as THREE from 'three'
-import { Stats } from '@react-three/drei'
 import '../styles/loading.css'
-import {Sidebar} from './sidebar'
-// import { Loading, LoadingRef } from './loading'
-var loadingRef
+import { Sidebar } from './sidebar'
+import '../styles/animations.css'
+import { Gun } from './shooting'
+import { Physics, RigidBody } from '@react-three/rapier'
+import { ShapeContext } from '../utils/context'
+import { TorusMesh, BoxMesh, CylinderMesh, SphereMesh } from './sidebar'
+import { Model_Cyberpunk } from '../variants/Cyberpunk'
+
+const gravity = -9.81;
+
 export function Loading() {
-    loadingRef = useRef(null)
     return (
         <div className="loading-overlay">
-            <div className="loader" id='loader' ref={loadingRef}></div>
+            <div className="loader" id='loader'></div>
         </div>
     )
 }
 
-export function RageRoom() {
-    const [isLoading, setIsLoading] = React.useState(true)
-    const [sidebar, setSidebar] = React.useState(false)
-    const [stats, setStats] = React.useState(false)
+export function getVariantModel(variant) {
+    switch (variant) {
+        case 'cyberpunk':
+            return Model_Cyberpunk;
+        // Add more variants here as needed
+        default:
+            return Model;
+    }
+}
 
-    setInterval(() => {
+export function RageRoom() {
+    const [isLoading, setIsLoading] = React.useState(true);
+    const [sidebar, setSidebar] = React.useState(false);
+    const [stats, setStats] = React.useState(false);
+
+    const { selectedShape, setSelectedShape } = React.useContext(ShapeContext);
+    const gunRef = useRef();
+
+    //=========================
+    // FIX: SHOOT BY ARROW UP
+    //=========================
+
+
+    // console.log(getBulletComponent())
+    const getBulletComponent = (shape) => {
+        switch (shape) {
+            case "box": return BoxMesh;
+            case "sphere": return SphereMesh;
+            case "cylinder": return CylinderMesh;
+            case "torus": return TorusMesh;
+            default: return null
+            // default: return BoxMesh;
+        }
+    };
+    setInterval(function() {
         document.getElementById('rage-room-canvas').style.width = window.innerWidth + 'px'
-    },1000) // update canvas width every second
+    },1000)
 
     return (
         <>
             {isLoading && <Loading />}
-            <Canvas id='rage-room-canvas' style={{ width: window.innerWidth, height: '100vh' }}
-                shadows camera={{ near: 0.1, far: 2000, fov: 50, position: new THREE.Vector3(-604.67, 485.11, 727.04), rotation: [-46.38, -42.07, -35.11] }}
-                onCreated={() => {setIsLoading(false);setSidebar(true);setStats(true);}}>
+
+            <Canvas
+                id='rage-room-canvas'
+                style={{
+                    width: window.innerWidth,
+                    height: "100vh",
+                    animation: 'fadeIn 0.5s ease-in-out',
+                    cursor: 'grab'
+                }}
+                shadows
+                camera={{
+                    near: 0.001,
+                    far: 2000,
+                    fov: 50,
+                    position: new THREE.Vector3(-5, 8, 5),
+                }}
+                onCreated={() => {
+                    setIsLoading(false);
+                    setSidebar(true);
+                    setStats(true);
+                }}
+            >
                 <color attach="background" args={['#000000']} />
-                <Model />
-                <OrbitControls minDistance={0.2} maxDistance={1000} enableZoom={true} />
+                <Physics gravity={[0, 0, 0]}>
+                    <RigidBody type="fixed" colliders="trimesh">
+                        {React.createElement(getVariantModel('cyberpunk'))}
+                    </RigidBody>
+                </Physics>
+                <Physics gravity={[0, gravity, 0]}>
+                   {selectedShape!=null && (<Gun ref={gunRef} selectedShape={selectedShape} getBulletComponent={getBulletComponent} />)}
+                </Physics>
+                <CameraControls />
+                <OrbitControls minDistance={0.1} maxDistance={1000} enableZoom />
             </Canvas>
-            {stats && <Stats className='stats'/>}
-            {sidebar && <Sidebar />}
+
+            {stats && <Stats className="stats" />}
+            {sidebar && <Sidebar style={{ animation: 'fadeIn 0.5s ease-in-out' }} />}
         </>
-    )
+    );
 }

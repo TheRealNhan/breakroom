@@ -5,9 +5,12 @@ import * as THREE from 'three';
 import { Canvas } from '@react-three/fiber';
 import React, { useRef, useState, useMemo } from 'react'
 import { OrbitControls, StatsGl, Html } from '@react-three/drei'
+import '../styles/animations.css';
+import { setDebugMode, debug } from '../utils/debug.jsx';
+import { ShapeContext } from '../utils/context.jsx';
 
-
-function BoxMesh({ color = 'orange', ...props }) {
+setDebugMode(false); // Disable debug mode by default
+export function BoxMesh({ color = 'orange', ...props }) {
     return (
         <mesh castShadow receiveShadow {...props}>
             <boxGeometry args={[1, 1, 1]} />
@@ -15,7 +18,7 @@ function BoxMesh({ color = 'orange', ...props }) {
         </mesh>
     )
 }
-function SphereMesh({ color = 'lightblue', r = 0.6, ...props }) {
+export function SphereMesh({ color = 'lightblue', r = 0.6, ...props }) {
     return (
         <mesh castShadow receiveShadow {...props}>
             <sphereGeometry args={[r, 32, 32]} />
@@ -23,7 +26,7 @@ function SphereMesh({ color = 'lightblue', r = 0.6, ...props }) {
         </mesh>
     )
 }
-function CylinderMesh({ color = 'gray', r1 = 0.5, r2 = 0.5, h = 1, ...props }) {
+export function CylinderMesh({ color = 'gray', r1 = 0.5, r2 = 0.5, h = 1, ...props }) {
     return (
         <mesh castShadow receiveShadow {...props}>
             <cylinderGeometry args={[r1, r2, h]} />
@@ -31,49 +34,50 @@ function CylinderMesh({ color = 'gray', r1 = 0.5, r2 = 0.5, h = 1, ...props }) {
         </mesh>
     )
 }
-function TorusMesh({ color = 'pink', r = 0.5, rtube = 0.15, ...props }) {
+export function TorusMesh({ color = 'pink', r = 0.5, rtube = 0.15, ...props }) {
     return (
         <mesh castShadow receiveShadow {...props}>
-            <torusGeometry args={[r, rtube]} />
+            <torusGeometry args={[r, rtube, 16, 64]} />
             <meshStandardMaterial color={color} metalness={0.45} roughness={0.35} />
         </mesh>
     )
 }
 
-// TODO: Sidebar component code goes here
-
 export function Sidebar({ ...props }) {
+    const { selectedShape, setSelectedShape } = React.useContext(ShapeContext);
 
-    const [isChoosing, setIsChoosing] = useState(false);
+    const handleShapeSelect = (shapeName) => {
+        setSelectedShape(selectedShape === shapeName ? null : shapeName);
+    };
 
     return (
         <div className="sidebar" {...props}>
             {/* This is where people can choose objects to add to the scene */}
             <h5 style={{ marginTop: '-5px' }}>Properties Sidebar</h5>
             {/** Make it draggable */}
-            <div id='dragCanvas' style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                <Canvas camera={{ position: [0, 0, 5] }} style={isChoosing? {border: '2px solid blue'} : {}} onClick={() => {setIsChoosing(false); setIsChoosing(true)}}> 
+            <div id='dragCanvas' style={{ display: 'grid', gap: 8, marginBottom: 12, cursor: 'grab', gridTemplateColumns: 'repeat(2,120px)', alignItems: 'center', justifyContent: 'center' }}>
+                <Canvas camera={{ position: [0, 0, 5] }} style={selectedShape === 'box' ? { border: '1px solid blue', width: '120px', height: '120px' } : { width: '120px', height: '120px' }} onClick={(e) => { e.stopPropagation(); handleShapeSelect('box'); }}>
                     {/** DEBUG: But there is a catch here, if we click on this element 
                      * and click on the other element, all of them will be selected */}
                     <color attach="background" args={['#ffffff']} />
-                    <ambientLight intensity={0.6} />
-                    <BoxMesh />
+                    <ambientLight intensity={0.6} /> <BoxMesh />
                 </Canvas>
-                <Canvas camera={{ position: [0, 0, 5] }} style={isChoosing? {border: '2px solid blue'} : {}} onClick={() => {setIsChoosing(false); setIsChoosing(true)}}>
+                <Canvas camera={{ position: [0, 0, 5] }} style={selectedShape === 'sphere' ? { border: '1px solid blue', width: '120px', height: '120px' } : { width: '120px', height: '120px' }} onClick={(e) => { e.stopPropagation(); handleShapeSelect('sphere'); }}>
                     <color attach="background" args={['#ffffff']} />
                     <ambientLight intensity={0.6} />
                     <SphereMesh />
                 </Canvas>
-                <Canvas camera={{ position: [0, 0, 5] }} style={isChoosing? {border: '2px solid blue'} : {}} onClick={() => {setIsChoosing(false); setIsChoosing(true)}}>
+                <Canvas camera={{ position: [0, 0, 5] }} style={selectedShape === 'cylinder' ? { border: '1px solid blue', width: '120px', height: '120px' } : { width: '120px', height: '120px' }} onClick={(e) => { e.stopPropagation(); handleShapeSelect('cylinder'); }}>
                     <color attach="background" args={['#ffffff']} />
                     <ambientLight intensity={0.6} />
                     <CylinderMesh />
                 </Canvas>
-                <Canvas camera={{ position: [0, 0, 5] }} style={isChoosing? {border: '2px solid blue'} : {}} onClick={() => {setIsChoosing(false); setIsChoosing(true)}}>
+                <Canvas camera={{ position: [0, 0, 5] }} style={selectedShape === 'torus' ? { border: '1px solid blue', width: '120px', height: '120px' } : { width: '120px', height: '120px' }} onClick={(e) => { e.stopPropagation(); handleShapeSelect('torus'); }}>
                     <color attach="background" args={['#ffffff']} />
                     <ambientLight intensity={0.6} />
                     <TorusMesh />
                 </Canvas>
+                {debug.current && (<p> Selected Shape: {selectedShape ? selectedShape : 'None'} </p>)}
             </div>
         </div>
     )
