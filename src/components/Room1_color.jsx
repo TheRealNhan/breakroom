@@ -4,8 +4,9 @@ Command: npx gltfjsx@6.5.3 public/room1_color.glb
 */
 
 import React from 'react'
-import { useGLTF } from '@react-three/drei'
+import { useGLTF, PerspectiveCamera, OrbitControls } from '@react-three/drei'
 import { Bloom, SelectiveBloom, EffectComposer } from '@react-three/postprocessing'
+import { MathUtils } from 'three'
 
 export function Model(props) {
   const { nodes, materials } = useGLTF('/room1_color.glb')
@@ -13,8 +14,24 @@ export function Model(props) {
   return (
     <>
       <ambientLight intensity={0.5} />
-      <directionalLight position={[5, 5, 5]} intensity={1} castShadow />
-
+      <directionalLight
+        name="Directional Light"
+        castShadow
+        intensity={0.7}
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
+        shadow-camera-near={-10000}
+        shadow-camera-far={100000}
+        shadow-camera-left={-1000}
+        shadow-camera-right={1000}
+        shadow-camera-top={1000}
+        shadow-camera-bottom={-1000}
+        position={[-5.6938, 5.1588, 8.537]}
+      />
+      <PerspectiveCamera name="Camera" makeDefault fov={45}
+        position={[-4,3,8]}
+        rotation={[-2.49, -0.68, -2.7]}
+      />
       <group {...props} dispose={null}>
         <group position={[0, 0.896, 0]} rotation={[Math.PI / 2, 0, 0]} scale={0.01}>
           <group position={[141.627, -115.135, -24.442]} rotation={[-1.577, 0, 1.623]} scale={[0.261, 0.281, 0.363]}>
@@ -137,6 +154,7 @@ export function Model(props) {
       <EffectComposer>
         <SelectiveBloom selection={nodes.lightbulb} intensity={1.5} luminanceThreshold={0.3} luminanceSmoothing={0.1} />
       </EffectComposer>
+      <OrbitControls enableZoom minDistance={0.01} maxDistance={1000} />
     </>
   )
 }

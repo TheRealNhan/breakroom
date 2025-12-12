@@ -1,16 +1,37 @@
-import React, { useRef } from 'react'
-import { useGLTF } from '@react-three/drei'
+import React, { useEffect, useRef } from 'react'
+import { useGLTF, PerspectiveCamera, OrbitControls } from '@react-three/drei'
 import { Bloom, EffectComposer, SelectiveBloom } from '@react-three/postprocessing'
 import * as THREE from 'three'
 import { BlendFunction } from 'postprocessing'
+import { MathUtils } from 'three'
+import { useThree } from '@react-three/fiber'
 
 export function Model_Cyberpunk(props) {
   const { nodes, materials } = useGLTF('/room2_color.glb')
-  const bloomRef = useRef()
+  const {camera} =useThree()
+  useEffect(() => {
+      camera.lookAt(new THREE.Vector3(MathUtils.degToRad(63.6),MathUtils.degToRad(-0.000005),MathUtils.degToRad(46.7)))
+      camera.updateProjectionMatrix()
+    
+  },[camera])
+  // const bloomRef = useRef()
   return (
     <>
-    <ambientLight intensity={0.5} />
-    <directionalLight intensity={0.8} position={[5, 10, 7.5]} castShadow shadow-mapSize-width={1024} shadow-mapSize-height={1024} shadow-camera-near={0.5} shadow-camera-far={500} shadow-camera-left={-50} shadow-camera-right={50} shadow-camera-top={50} shadow-camera-bottom={-50} />
+    <ambientLight intensity={0.1} />
+    <rectAreaLight intensity={50} width={1.47} height={1.47} position={[-3.4038, -9.0057, 5.4941]} 
+      // rotation={[MathUtils.degToRad(126),MathUtils.degToRad(-201),MathUtils.degToRad(-356)]}
+      color='#ff54f0' lookAt={[MathUtils.degToRad(126),MathUtils.degToRad(-201),MathUtils.degToRad(-356)]} castShadow />
+    <rectAreaLight width={1.47} height={1.47} intensity={200} position={[0.34049, -1.81516, 9.9585]}
+      lookAt={[MathUtils.degToRad(175),MathUtils.degToRad(-174),MathUtils.degToRad(-416+360)]}
+      scale={[1.414,1.414,1.414]}
+      color='#96c1ff' castShadow
+    />
+    <PerspectiveCamera position={[7.3589,-6.9258,5.3583]}
+      rotation={[MathUtils.degToRad(63.6),MathUtils.degToRad(-0.000005),MathUtils.degToRad(46.7)]}
+      makeDefault
+      focus={16}
+    />
+
     <group {...props} dispose={null}>
       <group position={[-2.9, 1.474, 2.993]}>
         <mesh
@@ -685,6 +706,7 @@ export function Model_Cyberpunk(props) {
         scale={0.314}
       />
     </group>
+    <OrbitControls target={[MathUtils.degToRad(63.6),MathUtils.degToRad(-0.000005),MathUtils.degToRad(46.7)]} minDistance={0.01} maxDistance={1000} enableZoom />
     </>
   )
 }

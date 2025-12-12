@@ -32,6 +32,7 @@ export function getVariantModel(variant) {
     }
 }
 
+
 export function RageRoom() {
     const [isLoading, setIsLoading] = React.useState(true);
     const [sidebar, setSidebar] = React.useState(false);
@@ -39,6 +40,7 @@ export function RageRoom() {
 
     const { selectedShape, setSelectedShape } = React.useContext(ShapeContext);
     const gunRef = useRef();
+    const canvasRef = useRef()
 
     //=========================
     // FIX: SHOOT BY ARROW UP
@@ -58,27 +60,28 @@ export function RageRoom() {
     };
     setInterval(function() {
         document.getElementById('rage-room-canvas').style.width = window.innerWidth + 'px'
+        if (!isLoading) canvasRef.current.style.cursor = 'grab'
     },1000)
 
     return (
         <>
             {isLoading && <Loading />}
 
-            <Canvas
+            <Canvas ref={canvasRef}
                 id='rage-room-canvas'
                 style={{
                     width: window.innerWidth,
                     height: "100vh",
                     animation: 'fadeIn 0.5s ease-in-out',
-                    cursor: 'grab'
                 }}
                 shadows
-                camera={{
-                    near: 0.001,
-                    far: 2000,
-                    fov: 50,
-                    position: new THREE.Vector3(-5, 8, 5),
-                }}
+                // camera={{
+                //     near: 0.001,
+                //     far: 2000,
+                //     fov: 50,
+                //     position: new THREE.Vector3(-5, 8, 5),
+                // }}
+                
                 onCreated={() => {
                     setIsLoading(false);
                     setSidebar(true);
@@ -88,14 +91,14 @@ export function RageRoom() {
                 <color attach="background" args={['#000000']} />
                 <Physics gravity={[0, 0, 0]}>
                     <RigidBody type="fixed" colliders="trimesh">
-                        {React.createElement(getVariantModel('cyberpunk'))}
+                        {React.createElement(getVariantModel(''))} {/** Default */}
                     </RigidBody>
                 </Physics>
-                <Physics gravity={[0, gravity, 0]}>
+                <Physics gravity={[0, gravity, 0]} timeStep={1/60} substeps={4}>
                    {selectedShape!=null && (<Gun ref={gunRef} selectedShape={selectedShape} getBulletComponent={getBulletComponent} />)}
                 </Physics>
                 <CameraControls />
-                <OrbitControls minDistance={0.1} maxDistance={1000} enableZoom />
+                
             </Canvas>
 
             {stats && <Stats className="stats" />}
